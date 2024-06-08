@@ -1,0 +1,63 @@
+﻿@inject ApiClient _http
+@inject AuthStateProvider _authState
+@inject NavigationManager _navigation
+
+<nav class="navbar navbar-expand-lg sticky-top bg-light py-2" data-bs-theme="light">
+    <div class="container-fluid">
+        <div class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="bi-list fs-4"></span>
+        </div>
+        <div class="navbar-brand dropdown">
+            <span class="dropdown-toggle pointer" id="navbarDropdown" data-bs-toggle="dropdown">
+                <AuthorizeView>
+                    <Authorized>
+                        <span class="bi-person-fill fs-4"></span>
+                    </Authorized>
+                    <NotAuthorized>
+                        <span class="bi-person fs-4"></span>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </span>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-lg-start" aria-labelledby="navbarDropdown">
+                <AuthorizeView>
+                    <Authorized>
+                        <li class="dropdown-item pointer" @onclick="() => NavigateTo(Routes.Profile)">Profile</li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li class="dropdown-item pointer" @onclick="Logout">Logout</li>
+                    </Authorized>
+                    <NotAuthorized>
+                        <li class="dropdown-item pointer" @onclick="() => NavigateTo(Routes.Login)">Login</li>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </ul>
+        </div>
+        <div class="navbar-collapse @GetCollapsedCssClass(_isNavMenuCollapsed)" @onclick="ToggleNavMenu">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="@Routes.Home" Match="NavLinkMatch.All">Home</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="weather">Weather</NavLink>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+@code {
+    private bool _isNavMenuCollapsed = true;
+
+    private void ToggleNavMenu() => _isNavMenuCollapsed = !_isNavMenuCollapsed;
+    private string? GetCollapsedCssClass(bool isCollapsed) => isCollapsed ? "collapse" : null;
+    private void NavigateTo(string route)
+    {
+        _isNavMenuCollapsed = true;
+        _navigation.NavigateTo(route, false);
+    }
+    private async Task Logout()
+    {
+        _ = await _http.Delete(Endpoints.Accounts.Refresh);
+        _navigation.NavigateTo(Routes.Login);
+        _authState.NotifyUserAuthentication();
+    }
+}

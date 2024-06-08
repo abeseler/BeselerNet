@@ -1,0 +1,13 @@
+[
+  {
+    "include": [
+      "Roles",
+      "Schemas",
+      "Tables",      
+      "Permissions"
+    ],
+    "contextFilter": [],
+    "requiresContext": false,
+    "errorIfMissingOrEmpty": false
+  }
+]

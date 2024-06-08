@@ -1,0 +1,22 @@
+﻿@attribute [Route(Routes.Home)]
+@attribute [AllowAnonymous]
+
+<PageTitle>BSLR: Home</PageTitle>
+
+<section class="container-fluid">
+    <AuthorizeView>
+        <AuthorizeView Context="EmailVerified" Policy="@Policies.EmailVerified">
+            <NotAuthorized>
+                <div class="alert alert-primary">
+                    <h5 class="fw-bold">You need to confirm your email address before you can access the app.</h5>
+                    <div>Check your email for a confirmation link or click <a href="@Routes.ConfirmEmail">here</a> to send it again.</div>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>        
+    </AuthorizeView>
+
+    <h1>Welcome!</h1>
+    <p>This app is a sandbox for testing and building prototypes for ASPNET and Blazor.</p>
+    <p>It is a work in progress and will be updated as I learn more about Blazor and ASPNET.</p>
+    <p>For now, it is a simple app that allows users to register, login, and confirm their email address.</p>
+</section>

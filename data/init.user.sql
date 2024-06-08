@@ -1,0 +1,2 @@
+CREATE ROLE api_user WITH LOGIN PASSWORD 'api_user';
+GRANT CONNECT ON DATABASE bslr TO api_user;

@@ -1,0 +1,58 @@
+﻿@attribute [Route(Routes.ConfirmEmail)] 
+@attribute [AllowAnonymous]
+@inject NavigationManager _navigation
+@inject AuthStateProvider _authStateProvider
+@inject HttpClient _http
+
+<PageTitle>BSLR: Confirm Email</PageTitle>
+
+<AuthorizeView Policy="@nameof(Policies.EmailVerified)">
+    <Authorized>
+        <p>You've already confirmed your email.</p>
+    </Authorized>
+    <NotAuthorized>
+        @if (ConfirmationToken is null)
+        {
+            <h3>Welcome aboard! 🎉</h3>
+            <p class="p-3">Thanks for joining us! 🌟 We're thrilled to have you as part of our community. To get started, please check your email inbox for a verification link. Clicking on it will activate your account and unlock all the exciting features awaiting you. If you don't see the email in your inbox, don't forget to check your spam or junk folder, just in case.</p>
+            <p class="p-3">If you encounter any issues or have questions, feel free to reach out to our support team. We're here to help! Happy exploring! 🚀</p>
+        }
+        else if (_confirmationFailed)
+        {
+            <p class="p-3">We've sent an email for you to verify your account and complete setup.</p>
+        }
+        else
+        {
+            <p class="p-3">Confirming your e-mail...</p>
+            <p class="p-3">ConfirmationToken: @ConfirmationToken</p>
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [SupplyParameterFromQuery(Name = "token")]
+    public string? ConfirmationToken { get; set; }
+    private bool _confirmationFailed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ConfirmationToken is null)
+        {
+            await _http.GetAsync(Endpoints.Accounts.ConfirmEmail);
+            return;
+        }        
+
+        var response = await _http.PostAsJsonAsync(Endpoints.Accounts.ConfirmEmail, new ConfirmEmailRequest(ConfirmationToken));
+        if (response.IsSuccessStatusCode is false)
+        {
+            _confirmationFailed = true;
+            return;
+        }
+
+        var token = await response.Content.ReadFromJsonAsync<AccessTokenResponse>();
+        if (token is not null)
+            _authStateProvider.NotifyUserAuthentication(token.AccessToken, token.ExpiresOn);
+
+        _navigation.NavigateTo(Routes.Home);
+    }
+}

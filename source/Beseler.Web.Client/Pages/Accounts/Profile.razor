@@ -1,0 +1,22 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Route(Routes.Profile)]
+@attribute [Authorize]
+
+<PageTitle>BSLR: Profile</PageTitle>
+<h3 class="pb-3">Profile</h3>
+
+<ul class="list-group d-flex d-sm-inline-flex">
+    <AuthorizeView>
+        <Authorized>
+            <li class="list-group-item list-group-item-success">Authenticated</li>
+            @foreach (var claim in context.User.Claims)
+            {
+                <li class="list-group-item">@claim.Type: @claim.Value</li>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <li class="list-group-item list-group-item-danger">Not Authenticated</li>
+        </NotAuthorized>
+    </AuthorizeView>
+</ul>

@@ -1,0 +1,157 @@
+﻿@attribute [Route(Routes.Login)]
+@attribute [AllowAnonymous]
+@inject HttpClient _http
+@inject AuthStateProvider _authStateProvider
+@inject NavigationManager _navigation
+@inject ILocalStorageService _localStorage
+
+<PageTitle>BSLR: Login</PageTitle>
+
+<div class="mask d-flex align-items-center">
+    <div class="container h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+                <div class="card" style="border-radius: 15px;">
+                    <div class="card-body p-4">
+
+                        <EditForm EditContext="_context" OnValidSubmit="Submit" FormName="AccountRegistration">
+                            <DataAnnotationsValidator />
+
+                            <h2 class="text-uppercase text-center mb-5">Account Login</h2>
+
+                            <TimedAlert Message="@_errorMessage" ShowUntil="@_showErrorUntil" />
+
+                            <div class="form-outline mb-4">
+                                <label class="form-label" for="Input_Email">Email</label>
+                                <InputText tabindex="1" type="email" id="Input_Email" class="form-control form-control-lg" @ref="_firstInput" @bind-Value="_model.Email" />
+                                <ValidationMessage For="@(() => _model.Email)" />
+                            </div>
+
+                            <div class="form-outline mb-4">
+                                <label class="form-label" for="Input_Password">Password</label>
+                                <InputText tabindex="2" type="password" id="Input_Password" class="form-control form-control-lg" @bind-Value="_model.Password" />
+                                <ValidationMessage For="@(() => _model.Password)" />
+                            </div>
+
+                            @if (_isProcessing)
+                            {
+                                <div class="d-flex justify-content-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="d-flex justify-content-center">
+                                    <button tabindex="3" type="submit" class="btn btn-primary btn-lg">Login</button>
+                                </div>
+
+                                <div class="d-flex justify-content-center mt-3">
+                                    <InputCheckbox id="Input_RememberMe" class="form-check-input me-3" @bind-Value="_model.RememberMe" />
+                                    <label class="form-check-label" for="Input_RememberMe">Remember Me</label>
+                                </div>
+                            }
+
+                            <p class="text-center text-muted mt-4">Don't have an account?<br /><a href="@Routes.Register" class="link fw-bold"><u>Sign up here!</u></a></p>
+                            <p class="text-center text-muted mt-2"><a href="@Routes.ForgotPassword" class="link fw-bold"><u>Forgot Password?</u></a></p>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private FormModel _model { get; set; } = new();
+    private EditContext? _context;
+    private InputText? _firstInput;
+    private bool _isProcessing;
+    private string? _errorMessage;
+    private DateTime? _showErrorUntil;
+
+    private class FormModel
+    {
+        [Required(ErrorMessage = "Email is required!")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "Password is required!")]
+        public string? Password { get; set; }
+
+        public bool RememberMe { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _context = new(_model);
+
+        _model.Email = await _localStorage.GetItemAsStringAsync(StorageKeys.Email);
+        _model.RememberMe = bool.TryParse(await _localStorage.GetItemAsStringAsync(StorageKeys.RememberMe), out var value) ? value : false;
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _firstInput?.Element is not null)
+            await _firstInput.Element.Value.FocusAsync();
+    }
+
+    private void Reset()
+    {
+        _model = new FormModel();
+        _context = new(_model);
+    }
+
+    private async Task Submit()
+    {
+        _isProcessing = true;
+
+        try
+        {
+            var request = new LoginAccountRequest(_model.Email!, _model.Password!);
+            _model.Password = null;
+
+            var response = await _http.PostAsJsonAsync(Endpoints.Accounts.Login, request);
+            if (response.IsSuccessStatusCode is not true)
+            {
+                Log.Error("Login failed: {@Response}", response.Content);
+                _errorMessage = response.StatusCode switch
+                {
+                    HttpStatusCode.Unauthorized => "Invalid email or password!",
+                    HttpStatusCode.Forbidden => "Account is locked!",
+                    _ => "Oops! Something went wrong..."
+                };
+                _showErrorUntil = DateTime.UtcNow.AddSeconds(8);
+                return;
+            }
+
+            var tokenData = await response.Content.ReadFromJsonAsync<AccessTokenResponse>();
+            if (tokenData?.AccessToken is null)
+            {
+                Log.Error("Login failed: {@Response}", response.Content);
+                _errorMessage = "Oops! Something went wrong...";
+                _showErrorUntil = DateTime.UtcNow.AddSeconds(8);
+                return;
+            }
+
+            _authStateProvider.NotifyUserAuthentication(tokenData.AccessToken, tokenData.ExpiresOn);
+            _navigation.NavigateTo("/");
+        }
+        finally
+        {
+            if (_model.RememberMe && _model.Email is not null)
+            {
+                await _localStorage.SetItemAsStringAsync(StorageKeys.Email, _model.Email);
+                await _localStorage.SetItemAsStringAsync(StorageKeys.RememberMe, _model.RememberMe.ToString());
+            }
+            else
+            {
+                await _localStorage.RemoveItemAsync(StorageKeys.Email);
+                await _localStorage.RemoveItemAsync(StorageKeys.RememberMe);
+            }
+            _isProcessing = false;
+        }
+    }
+}

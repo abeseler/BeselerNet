@@ -1,0 +1,30 @@
+﻿<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <NotAuthorized>
+                <Redirect Route="@Login" />
+            </NotAuthorized>
+            <Authorizing>
+                <p>Authorizing...</p>
+            </Authorizing>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code {
+    public const string Home = "/";
+    public const string Login = "/account/login";
+    public const string Register = "/account/register";
+    public const string ConfirmEmail = "/account/confirm-email";
+    public const string ResetPassword = "/account/reset-password";
+    public const string ForgotPassword = "/account/forgot-password";
+    public const string Profile = "/account/profile";
+    public const string Budget = "/budget";
+}

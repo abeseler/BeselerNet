@@ -1,0 +1,159 @@
+﻿@attribute [Route(Routes.Register)]
+@attribute [AllowAnonymous]
+@inject HttpClient _http
+@inject AuthStateProvider _authStateProvider
+@inject NavigationManager _navigation
+
+<PageTitle>BSLR: Register</PageTitle>
+
+<div class="mask d-flex align-items-center h-100">
+    <div class="container h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+                <div class="card" style="border-radius: 15px;">
+                    <div class="card-body p-4">
+
+                        <EditForm EditContext="_context" OnValidSubmit="Submit" FormName="AccountRegistration">
+                            <DataAnnotationsValidator />
+
+                            <h2 class="text-uppercase text-center mb-5">Create an account</h2>
+
+                            <div class="form-outline mb-4">
+                                <label class="form-label" for="Input_Email">Email</label>
+                                <InputText tabindex="1" type="email" id="Input_Email" class="form-control form-control-lg" @ref="_firstInput" @bind-Value="_model.Email" />
+                                <ValidationMessage For="@(() => _model.Email)" />
+                            </div>
+
+                            <div class="d-flex flex-row">
+                                <div class="form-outline mb-4 me-2 flex-fill">
+                                    <label for="Input_FirstName" class="form-label">First Name</label>
+                                    <InputText tabindex="2" id="Input_FirstName" class="form-control form-control-lg" @bind-Value="_model.FirstName" />
+                                    <ValidationMessage For="@(() => _model.FirstName)" />
+                                </div>
+
+                                <div class="form-outline mb-4 ms-2 flex-fill">
+                                    <label for="Input_LastName" class="form-label">Last Name</label>
+                                    <InputText tabindex="3" id="Input_LastName" class="form-control form-control-lg" @bind-Value="_model.LastName" />
+                                    <ValidationMessage For="@(() => _model.FirstName)" />
+                                </div>
+                            </div>
+
+                            <div class="form-outline mb-4">
+                                <label class="form-label" for="Input_Password">Password</label>
+                                <InputText tabindex="4" type="password" id="Input_Password" class="form-control form-control-lg" @bind-Value="_model.Password" />
+                                <ValidationMessage For="@(() => _model.Password)" />
+                            </div>
+
+                            <div class="form-outline mb-4">
+                                <label class="form-label" for="Input_ConfirmPassword">Repeat your password</label>
+                                <InputText tabindex="5" type="password" id="Input_ConfirmPassword" class="form-control form-control-lg" @bind-Value="_model.ConfirmPassword" />
+                                <ValidationMessage For="@(() => _model.ConfirmPassword)" />
+                            </div>
+
+                            <div class="d-flex justify-content-center">
+                                @if (_isProcessing)
+                                {
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <button tabindex="7" type="reset" class="btn btn-outline-primary btn-lg me-2" @onclick="Reset">Reset</button>
+                                    <button tabindex="6" type="submit" class="btn btn-primary btn-lg ms-2">Register</button>
+                                }
+                            </div>
+
+                            <p class="text-center text-muted mt-5">Have already an account? <a href="@Routes.Login" class="link fw-bold text-decoration-underline">Login here</a></p>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private FormModel _model { get; set; } = new();
+    private EditContext? _context;
+    private InputText? _firstInput;
+
+    private bool _isProcessing = false;
+
+    private class FormModel
+    {
+        [Required(ErrorMessage = "Email is required!")]
+        [EmailAddress]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "First name is required!")]
+        [MinLength(2), MaxLength(50)]
+        public string? FirstName { get; set; }
+
+        [Required(ErrorMessage = "Last name is required!")]
+        [MinLength(2), MaxLength(50)]
+        public string? LastName { get; set; }
+
+        [Required(ErrorMessage = "Password is required!")]
+        [MinLength(8), MaxLength(50)]
+        public string? Password { get; set; }
+
+        [Required(ErrorMessage = "Re-enter your password!"), Compare(nameof(Password), ErrorMessage = "Passwords to not match!")]
+        public string? ConfirmPassword { get; set; }
+    }
+
+    protected override void OnInitialized() => _context = new(_model);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _firstInput?.Element is not null)
+            await _firstInput.Element.Value.FocusAsync();
+    }
+
+    private void Reset()
+    {
+        _model = new FormModel();
+        _context = new(_model);
+    }
+
+    private async Task Submit()
+    {
+        _isProcessing = true;
+        try
+        {
+            var request = new RegisterAccountRequest(_model.Email!, _model.FirstName!, _model.LastName!, _model.Password!);
+            var loginRequest = new LoginAccountRequest(_model.Email!, request.Password);
+            _model.Password = null;
+            _model.ConfirmPassword = null;
+
+            var response = await _http.PostAsJsonAsync(Endpoints.Accounts.Register, request);
+            if (response.IsSuccessStatusCode is false)
+            {
+                Log.Error("Registration failed: {@Response}", response);
+                return;
+            }
+
+            var loginResponse = await _http.PostAsJsonAsync(Endpoints.Accounts.Login, loginRequest);
+            if (loginResponse.IsSuccessStatusCode is false)
+            {
+                Log.Error("Login failed: {@Response}", loginResponse);
+                return;
+            }
+
+            var tokenData = await loginResponse.Content.ReadFromJsonAsync<AccessTokenResponse>();
+            if (tokenData?.AccessToken is null)
+            {
+                Log.Error("Login failed: {@Response}", loginResponse);
+                return;
+            }
+
+            _authStateProvider.NotifyUserAuthentication(tokenData.AccessToken, tokenData.ExpiresOn);
+            _navigation.NavigateTo("/");
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+}

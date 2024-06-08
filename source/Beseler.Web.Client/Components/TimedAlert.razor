@@ -1,0 +1,44 @@
+﻿@if (_showAlert)
+{
+    <div class="alert alert-danger shadow-lg pointer" @onclick="() => _showAlert = false">
+        @if (Subject is not null)
+        {
+            <div class="alert-heading">@Subject</div>
+        }
+        <div>@Message</div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public string? Message { get; set; }
+    [Parameter] public string? Subject { get; set; }
+    [Parameter, EditorRequired] public DateTime? ShowUntil { get; set; }
+
+    private bool _showAlert = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Message is not null && ShowUntil is not null)
+        {
+            _showAlert = true;
+            var wait = ShowUntil - DateTime.UtcNow;
+            if (wait < TimeSpan.FromSeconds(1))
+            {
+                _showAlert = false;
+                return;
+            }
+
+            await Task.Delay(wait.Value).ContinueWith(_ =>
+            {
+                if (ShowUntil <= DateTime.UtcNow && _showAlert)
+                    _showAlert = false;
+            });
+        }
+        else
+        {
+            _showAlert = false;
+        }
+
+        await base.OnParametersSetAsync();
+    }
+}
