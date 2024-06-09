@@ -1,4 +1,5 @@
 ﻿using Beseler.ApiService.Accounts;
+using System.Diagnostics;
 using System.Text.Json.Serialization;
 
 namespace Beseler.ApiService.Application;
@@ -10,4 +11,5 @@ public abstract record Event
 {
     public Guid EventId { get; init; } = Guid.NewGuid();
     public long Timestamp { get; init; } = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    public string? TraceId { get; init; } = Activity.Current?.ParentId ?? Activity.Current?.Id;
 }

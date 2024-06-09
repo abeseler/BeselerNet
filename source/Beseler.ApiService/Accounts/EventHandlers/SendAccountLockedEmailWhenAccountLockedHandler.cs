@@ -1,4 +1,6 @@
-﻿using Beseler.ApiService.Application.SendGrid;
+﻿using Beseler.ApiService.Application;
+using Beseler.ApiService.Application.SendGrid;
+using System.Diagnostics;
 
 namespace Beseler.ApiService.Accounts.EventHandlers;
 
@@ -6,6 +8,8 @@ internal sealed class SendAccountLockedEmailWhenAccountLockedHandler(EmailServic
 {
     public async Task HandleAsync(AccountLockedDomainEvent @event, CancellationToken stoppingToken = default)
     {
+        Activity.Current.SetTag_AccountId(@event.AccountId);
+
         var emailMessage = new EmailMessage
         {
             ToEmail = @event.Email,

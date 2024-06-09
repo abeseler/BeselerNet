@@ -1,5 +1,7 @@
-﻿using Beseler.ApiService.Application.Jwt;
+﻿using Beseler.ApiService.Application;
+using Beseler.ApiService.Application.Jwt;
 using Beseler.ApiService.Application.SendGrid;
+using System.Diagnostics;
 namespace Beseler.ApiService.Accounts.EventHandlers;
 
 internal sealed class SendVerificationEmailWhenAccountCreatedHandler(TokenService tokenService, AccountRepository repository, EmailService emailService)
@@ -8,6 +10,8 @@ internal sealed class SendVerificationEmailWhenAccountCreatedHandler(TokenServic
     {
         var account = await repository.GetByEmailAsync(@event.Email, stoppingToken)
             ?? throw new InvalidOperationException($"Account not found: {@event.Email}");
+
+        Activity.Current.SetTag_AccountId(account.AccountId);
 
         var token = tokenService.GenerateToken(account, TimeSpan.FromMinutes(10), [AppClaims.ConfirmEmailClaim(tokenService.Audience, account.Email)]);
 

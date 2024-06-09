@@ -43,8 +43,13 @@ internal static class Registrar
             .Enrich.FromLogContext());
 
         builder.AddServiceDefaults();
-        builder.Services.AddProblemDetails();
+        builder.Services.AddOpenTelemetry()
+            .WithTracing(tracing =>
+            {
+                tracing.AddSource(Telemetry.Source.Name);
+            });
 
+        builder.Services.AddProblemDetails();
         builder.Services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
