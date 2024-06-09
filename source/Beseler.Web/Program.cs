@@ -22,7 +22,7 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 
             options.Headers.Add(key, value);
         }
-        options.ResourceAttributes.Add("service.name", "beseler-web");
+        options.ResourceAttributes.Add("service.name", "BeselerWeb");
     })
     .Enrich.FromLogContext());
 

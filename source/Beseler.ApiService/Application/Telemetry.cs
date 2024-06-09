@@ -8,6 +8,6 @@ internal static class Telemetry
     public static Activity? StartActivity(string name, string? parentId = null) =>
         Source.StartActivity(name, ActivityKind.Internal, parentId);
 
-    public static void SetTag_AccountId(this Activity? activity, int accountId) =>
-        activity?.SetTag("account.id", accountId);
+    public static void SetTag_AccountId(this Activity activity, int accountId) =>
+        activity.SetTag("account.id", accountId);
 }

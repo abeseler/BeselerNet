@@ -38,7 +38,7 @@ internal static class Registrar
 
                     options.Headers.Add(key, value);
                 }
-                options.ResourceAttributes.Add("service.name", "beseler-api");
+                options.ResourceAttributes.Add("service.name", "BeselerApi");
             })
             .Enrich.FromLogContext());
 

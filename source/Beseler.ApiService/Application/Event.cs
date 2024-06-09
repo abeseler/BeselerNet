@@ -11,5 +11,5 @@ public abstract record Event
 {
     public Guid EventId { get; init; } = Guid.NewGuid();
     public long Timestamp { get; init; } = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-    public string? TraceId { get; init; } = Activity.Current?.ParentId ?? Activity.Current?.Id;
+    public string? TraceId { get; init; } = Activity.Current?.Id ?? Activity.Current?.ParentId;
 }

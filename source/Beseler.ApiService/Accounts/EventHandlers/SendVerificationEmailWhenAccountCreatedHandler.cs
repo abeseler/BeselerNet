@@ -8,10 +8,13 @@ internal sealed class SendVerificationEmailWhenAccountCreatedHandler(TokenServic
 {
     public async Task HandleAsync(AccountCreatedDomainEvent @event, CancellationToken stoppingToken = default)
     {
+        using var activity = Telemetry.StartActivity("SendVerificationEmailWhenAccountCreatedHandler.HandleAsync", Activity.Current?.Id ?? @event.TraceId);
+        activity?.SetTag("event.id", @event.EventId);
+
         var account = await repository.GetByEmailAsync(@event.Email, stoppingToken)
             ?? throw new InvalidOperationException($"Account not found: {@event.Email}");
 
-        Activity.Current.SetTag_AccountId(account.AccountId);
+        activity?.SetTag_AccountId(account.AccountId);
 
         var token = tokenService.GenerateToken(account, TimeSpan.FromMinutes(10), [AppClaims.ConfirmEmailClaim(tokenService.Audience, account.Email)]);
 

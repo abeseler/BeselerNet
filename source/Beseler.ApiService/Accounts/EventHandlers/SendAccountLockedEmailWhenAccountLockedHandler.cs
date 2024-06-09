@@ -8,7 +8,9 @@ internal sealed class SendAccountLockedEmailWhenAccountLockedHandler(EmailServic
 {
     public async Task HandleAsync(AccountLockedDomainEvent @event, CancellationToken stoppingToken = default)
     {
-        Activity.Current.SetTag_AccountId(@event.AccountId);
+        using var activity = Telemetry.StartActivity("SendAccountLockedEmailWhenAccountLockedHandler.HandleAsync", Activity.Current?.Id ?? @event.TraceId);
+        activity?.SetTag("event.id", @event.EventId);
+        activity?.SetTag_AccountId(@event.AccountId);
 
         var emailMessage = new EmailMessage
         {
