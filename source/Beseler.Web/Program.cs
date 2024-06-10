@@ -8,6 +8,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Configuration(context.Configuration)
     .ReadFrom.Services(services)
+    .Filter.ByExcluding(logEvent =>
+        logEvent.Properties.TryGetValue("RequestPath", out var requestPath)
+            && requestPath.ToString() switch
+            {
+                string path when path.StartsWith("\"/_framework") => true,
+                string path when path.StartsWith("\"/favicon") => true,
+                string path when path.StartsWith("\"/health") => true,
+                string path when path.StartsWith("\"/alive") => true,
+                _ => false
+            })
     .WriteTo.OpenTelemetry(options =>
     {
         options.Endpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]!;
@@ -22,7 +32,7 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 
             options.Headers.Add(key, value);
         }
-        options.ResourceAttributes.Add("service.name", "BeselerWeb");
+        options.ResourceAttributes.Add("service.name", "Beseler.Web");
     })
     .Enrich.FromLogContext());
 
