@@ -12,9 +12,11 @@
             <div class="col-12 col-md-9 col-lg-7 col-xl-6">
                 <div class="card" style="border-radius: 15px;">
                     <div class="card-body p-4">
+                        <TimedAlert Message="@_errorMessage" ShowUntil="@_showErrorUntil" />
 
                         <EditForm EditContext="_context" OnValidSubmit="Submit" FormName="AccountRegistration">
                             <DataAnnotationsValidator />
+                            <CustomValidation @ref="_customValidation" />
 
                             <h2 class="text-uppercase text-center mb-5">Create an account</h2>
 
@@ -77,7 +79,10 @@
     [SupplyParameterFromForm]
     private FormModel _model { get; set; } = new();
     private EditContext? _context;
+    private CustomValidation? _customValidation;
     private InputText? _firstInput;
+    private string? _errorMessage;
+    private DateTime? _showErrorUntil;
 
     private bool _isProcessing = false;
 
@@ -122,6 +127,8 @@
         _isProcessing = true;
         try
         {
+            Log.Information("Hello from the server!");
+            Log.Information("Registering account: {@Model}", _model);
             var request = new RegisterAccountRequest(_model.Email!, _model.FirstName!, _model.LastName!, _model.Password!);
             var loginRequest = new LoginAccountRequest(_model.Email!, request.Password);
             _model.Password = null;
@@ -130,26 +137,43 @@
             var response = await _http.PostAsJsonAsync(Endpoints.Accounts.Register, request);
             if (response.IsSuccessStatusCode is false)
             {
-                Log.Error("Registration failed: {@Response}", response);
+                if (response.StatusCode is HttpStatusCode.BadRequest)
+                {
+                    var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+                    if (problemDetails is not null)
+                    {
+                        _customValidation?.DisplayErrors(problemDetails.Errors);
+                    }
+                    else
+                    {
+                        _errorMessage = "Oops! Something went wrong registering an account...";
+                        _showErrorUntil = DateTime.UtcNow.AddSeconds(8);
+                    }
+                }
+                await _firstInput!.Element!.Value.FocusAsync();                
                 return;
             }
 
             var loginResponse = await _http.PostAsJsonAsync(Endpoints.Accounts.Login, loginRequest);
             if (loginResponse.IsSuccessStatusCode is false)
             {
-                Log.Error("Login failed: {@Response}", loginResponse);
+                _navigation.NavigateTo(Routes.Login);
                 return;
             }
 
             var tokenData = await loginResponse.Content.ReadFromJsonAsync<AccessTokenResponse>();
             if (tokenData?.AccessToken is null)
             {
-                Log.Error("Login failed: {@Response}", loginResponse);
+                _navigation.NavigateTo(Routes.Login);
                 return;
             }
 
             _authStateProvider.NotifyUserAuthentication(tokenData.AccessToken, tokenData.ExpiresOn);
             _navigation.NavigateTo("/");
+        }
+        catch(Exception ex)
+        {
+            Log.Error(ex, "Exception was caught registering account.");
         }
         finally
         {

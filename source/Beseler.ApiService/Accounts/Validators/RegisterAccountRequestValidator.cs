@@ -14,7 +14,9 @@ public sealed class RegisterAccountRequestValidator : AbstractValidator<Register
         RuleFor(x => x).CustomAsync(async (request, context, stoppingToken) =>
         {
             if (await repository.GetByEmailAsync(request.Email, stoppingToken) is not null)
+            {
                 context.AddFailure(nameof(request.Email), $"Account already exists for '{request.Email}'.");
+            }
         });
     }
 }
