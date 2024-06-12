@@ -46,11 +46,6 @@ builder.Services.AddRazorComponents()
 
 var app = builder.Build();
 
-app.MapForwarder("/api/{**catch-all}", "http://BeselerApi", builder =>
-{
-    builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
-});
-
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
@@ -59,6 +54,12 @@ else
 {
     app.UseHsts();
 }
+
+app.MapForwarder("/api/{**catch-all}", "http://BeselerApi", builder =>
+{
+    builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
+});
+
 app.UseStaticFiles();
 
 app.UseHttpsRedirection();

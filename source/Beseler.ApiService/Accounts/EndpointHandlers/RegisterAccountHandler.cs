@@ -28,6 +28,5 @@ internal static class RegisterAccountHandler
         return saveResult.Match<IResult>(
             onSuccess: _ => TypedResults.NoContent(),
             onFailure: error => TypedResults.Problem(error.Message));
-
     }
 }
