@@ -36,7 +36,7 @@ internal static class ConfirmEmailHandler
 
         using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
         var saveResult = await repository.SaveChangesAsync(account, stoppingToken);
-        await tokenRepository.SaveAsync(TokenLog.Create(refreshTokenId, refreshExpiresOn, account), stoppingToken);
+        await tokenRepository.SaveAsync(new TokenLog(refreshTokenId, refreshExpiresOn, account), stoppingToken);
         scope.Complete();
 
         cookieService.Set(CookieKeys.RefreshToken, refreshToken, refreshExpiresOn);

@@ -1,4 +1,6 @@
-﻿namespace Beseler.ApiService.Application.Outbox;
+﻿using System.Text.Json;
+
+namespace Beseler.ApiService.Application.Outbox;
 
 public sealed record OutboxMessage
 {
@@ -9,14 +11,14 @@ public sealed record OutboxMessage
     public DateTime CreatedOn { get; init; }
     public DateTime InvisibleUntil { get; init; }
     public int ReceivesRemaining { get; init; }
-    public static OutboxMessage Create(string serviceId, string payload, int receiveMaxCount) =>
-        new()
-        {
-            Id = 0,
-            ServiceId = serviceId,
-            Payload = payload,
-            CreatedOn = DateTime.UtcNow,
-            InvisibleUntil = DateTime.UtcNow,
-            ReceivesRemaining = receiveMaxCount
-        };
+    public static OutboxMessage CreateFrom<T>(T payload) =>
+    new()
+    {
+        Id = 0,
+        ServiceId = OutboxRepository.ServiceId,
+        Payload = JsonSerializer.Serialize(payload, JsonSerializerOptionsExt.Web),
+        CreatedOn = DateTime.UtcNow,
+        InvisibleUntil = DateTime.UtcNow,
+        ReceivesRemaining = 10
+    };
 }

@@ -1,12 +1,11 @@
-﻿using Beseler.ApiService.Application;
-using Beseler.ApiService.Application.Outbox;
+﻿using Beseler.ApiService.Application.Outbox;
 using Dapper;
 using Npgsql;
 using System.Runtime.CompilerServices;
 
 namespace Beseler.ApiService.Accounts;
 
-public sealed class AccountRepository(NpgsqlDataSource db, OutboxRepository outbox) : AggregateRepository(outbox)
+public sealed class AccountRepository(NpgsqlDataSource db, OutboxRepository outbox)
 {
     public async Task<Account?> GetByIdAsync(int id, CancellationToken stoppingToken = default)
     {
@@ -39,10 +38,14 @@ public sealed class AccountRepository(NpgsqlDataSource db, OutboxRepository outb
             _ => account
         };
 
-        if (result.Succeeded)
+        if (result.Failed) return result;
+        if (account.DomainEvents.Count > 0)
         {
-            await base.SaveChangesAsync(account, stoppingToken);
+            var messages = account.DomainEvents.Select(OutboxMessage.CreateFrom);
+            await outbox.Enqueue(messages, stoppingToken);
         }
+
+        account.SavedChanges();
 
         return result;
     }

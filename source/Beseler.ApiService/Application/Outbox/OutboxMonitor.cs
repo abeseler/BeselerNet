@@ -4,10 +4,9 @@ namespace Beseler.ApiService.Application.Outbox;
 
 internal sealed class OutboxMonitor(EventHandlingService factory, OutboxRepository repository, ILogger<OutboxMonitor> logger) : BackgroundService
 {
-    private readonly PeriodicTimer _timer = new(TimeSpan.FromSeconds(1));
+    private readonly PeriodicTimer _timer = new(TimeSpan.FromSeconds(5));
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var activity = Telemetry.StartActivity("OutboxMonitor.Polling");
         while (await _timer.WaitForNextTickAsync(stoppingToken))
         {
             try

@@ -53,7 +53,7 @@ internal static class RefreshTokenHandler
 
         tokenLog.ReplacedBy(refreshTokenId);
         await tokenRepository.SaveAsync(tokenLog, stoppingToken);
-        await tokenRepository.SaveAsync(TokenLog.Create(refreshTokenId, refreshExpiresOn, account), stoppingToken);
+        await tokenRepository.SaveAsync(new TokenLog(refreshTokenId, refreshExpiresOn, account), stoppingToken);
 
         cookieService.Set(CookieKeys.RefreshToken, refreshToken, refreshExpiresOn);
         return TypedResults.Ok(new AccessTokenResponse(accessToken, expiresOn));

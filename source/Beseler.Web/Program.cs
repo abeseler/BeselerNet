@@ -1,4 +1,5 @@
 using Beseler.Defaults;
+using Beseler.Shared;
 using Beseler.Web;
 using Serilog;
 using Yarp.ReverseProxy.Transforms;
@@ -55,7 +56,27 @@ else
     app.UseHsts();
 }
 
-app.MapForwarder("/api/{**catch-all}", "http://BeselerApi", builder =>
+app.MapForwarder($"/api/{Endpoints.Accounts.Refresh}", "http://BeselerApi", builder =>
+{
+    builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
+});
+app.MapForwarder($"/api/{Endpoints.Accounts.Login}", "http://BeselerApi", builder =>
+{
+    builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
+});
+app.MapForwarder($"/api/{Endpoints.Accounts.Register}", "http://BeselerApi", builder =>
+{
+    builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
+});
+app.MapForwarder($"/api/{Endpoints.Accounts.ConfirmEmail}", "http://BeselerApi", builder =>
+{
+    builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
+});
+app.MapForwarder($"/api/{Endpoints.Accounts.ResetPassword}", "http://BeselerApi", builder =>
+{
+    builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
+});
+app.MapForwarder("/api/weather", "http://BeselerApi", builder =>
 {
     builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
 });
