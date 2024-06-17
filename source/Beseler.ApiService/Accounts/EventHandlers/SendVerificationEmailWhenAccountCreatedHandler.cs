@@ -1,14 +1,13 @@
 ﻿using Beseler.ApiService.Application;
 using Beseler.ApiService.Application.Jwt;
 using Beseler.ApiService.Application.SendGrid;
-using System.Diagnostics;
 namespace Beseler.ApiService.Accounts.EventHandlers;
 
 internal sealed class SendVerificationEmailWhenAccountCreatedHandler(TokenService tokenService, AccountRepository repository, EmailService emailService)
 {
     public async Task HandleAsync(AccountCreatedDomainEvent @event, CancellationToken stoppingToken = default)
     {
-        using var activity = Telemetry.StartActivity("SendVerificationEmailWhenAccountCreatedHandler.HandleAsync", Activity.Current?.Id ?? @event.TraceId);
+        using var activity = Telemetry.Source.StartActivity("SendVerificationEmailWhenAccountCreatedHandler.HandleAsync", ActivityKind.Internal, Activity.Current?.Id ?? @event.TraceId);
         activity?.SetTag("event.id", @event.EventId);
 
         var account = await repository.GetByEmailAsync(@event.Email, stoppingToken)

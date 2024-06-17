@@ -1,5 +1,4 @@
 ﻿using Beseler.ApiService.Accounts;
-using System.Diagnostics;
 using System.Text.Json.Serialization;
 
 namespace Beseler.ApiService.Application;

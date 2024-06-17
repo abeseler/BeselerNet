@@ -14,6 +14,6 @@ public sealed class HttpContextLogEnricher(IHttpContextAccessor accessor) : ILog
         {
             Activity.Current?.AddTag("account.id", user.Name);
             logEvent.AddPropertyIfAbsent(new LogEventProperty("AccountId", new ScalarValue(user.Name)));
-        }            
+        }
     }
 }

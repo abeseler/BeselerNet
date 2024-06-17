@@ -1,6 +1,5 @@
 ﻿using Beseler.ApiService.Application;
 using Beseler.ApiService.Application.SendGrid;
-using System.Diagnostics;
 
 namespace Beseler.ApiService.Accounts.EventHandlers;
 
@@ -8,7 +7,7 @@ internal sealed class SendAccountLockedEmailWhenAccountLockedHandler(EmailServic
 {
     public async Task HandleAsync(AccountLockedDomainEvent @event, CancellationToken stoppingToken = default)
     {
-        using var activity = Telemetry.StartActivity("SendAccountLockedEmailWhenAccountLockedHandler.HandleAsync", Activity.Current?.Id ?? @event.TraceId);
+        using var activity = Telemetry.Source.StartActivity("SendAccountLockedEmailWhenAccountLockedHandler.HandleAsync", ActivityKind.Internal, Activity.Current?.Id ?? @event.TraceId);
         activity?.SetTag("event.id", @event.EventId);
         activity?.SetTag_AccountId(@event.AccountId);
 

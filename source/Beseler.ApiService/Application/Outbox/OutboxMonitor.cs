@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace Beseler.ApiService.Application.Outbox;
+﻿namespace Beseler.ApiService.Application.Outbox;
 
 internal sealed class OutboxMonitor(EventHandlingService factory, OutboxRepository repository, ILogger<OutboxMonitor> logger) : BackgroundService
 {
@@ -30,7 +28,7 @@ internal sealed class OutboxMonitor(EventHandlingService factory, OutboxReposito
             var @event = JsonSerializer.Deserialize<Event>(message.Payload, JsonSerializerOptionsExt.Web)
                 ?? throw new InvalidOperationException("Failed to deserialize event from message payload.");
 
-            using var activity = Telemetry.StartActivity("OutboxMonitor.ProcessMessage", @event.TraceId);
+            using var activity = Telemetry.Source.StartActivity("OutboxMonitor.ProcessMessage", ActivityKind.Internal, @event.TraceId);
             activity?.SetTag("message.id", message.Id);
             activity?.SetTag("event.id", @event.EventId);
 

@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace Beseler.ApiService.Application.Outbox;
+﻿namespace Beseler.ApiService.Application.Outbox;
 
 public sealed record OutboxMessage
 {
