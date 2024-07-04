@@ -83,7 +83,6 @@ app.MapForwarder("/api/weather", "http://BeselerApi", builder =>
 
 app.UseStaticFiles();
 
-app.UseHttpsRedirection();
 app.UseSerilogRequestLogging();
 
 app.UseAntiforgery();
