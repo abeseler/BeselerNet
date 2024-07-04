@@ -11,7 +11,7 @@
 
   <ItemGroup>
 	<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.6" />
-	<PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Yarp" Version="8.0.1" />
+	<PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Yarp" Version="8.0.2" />
 	<PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="3.0.0" />
   </ItemGroup>
 
