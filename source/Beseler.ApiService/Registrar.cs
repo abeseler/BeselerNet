@@ -28,8 +28,8 @@ internal static class Registrar
                 logEvent.Properties.TryGetValue("RequestPath", out var requestPath)
                     && requestPath.ToString() switch
                     {
-                        string path when path.StartsWith("\"/health") => true,
-                        string path when path.StartsWith("\"/alive") => true,
+                        { } path when path.StartsWith("\"/health") => true,
+                        { } path when path.StartsWith("\"/alive") => true,
                         _ => false
                     })
             .WriteTo.OpenTelemetry(options =>
@@ -40,7 +40,7 @@ internal static class Registrar
                 {
                     var (key, value) = header.Split('=') switch
                     {
-                    [string k, string v] => (k, v),
+                    [{ } k, { } v] => (k, v),
                         var v => throw new Exception($"Invalid header format {v}")
                     };
 

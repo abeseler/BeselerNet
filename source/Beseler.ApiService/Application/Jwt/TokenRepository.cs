@@ -7,7 +7,7 @@ internal sealed class TokenRepository(NpgsqlDataSource db)
 {
     public async Task<TokenLog?> GetByIdAsync(Guid tokenId, CancellationToken stoppingToken = default)
     {
-        using var connection = await db.OpenConnectionAsync(stoppingToken);
+        await using var connection = await db.OpenConnectionAsync(stoppingToken);
         return await connection.QuerySingleOrDefaultAsync<TokenLog>("""
             SELECT *
             FROM app.token_log
@@ -26,7 +26,7 @@ internal sealed class TokenRepository(NpgsqlDataSource db)
 
     public async Task RevokeTokensForAccount(int accountId, CancellationToken stoppingToken = default)
     {
-        using var connection = await db.OpenConnectionAsync(stoppingToken);
+        await using var connection = await db.OpenConnectionAsync(stoppingToken);
         await connection.ExecuteAsync("""
             UPDATE app.token_log
             SET is_revoked = true
@@ -38,7 +38,7 @@ internal sealed class TokenRepository(NpgsqlDataSource db)
 
     public async Task RevokeChainAsync(Guid tokenId, CancellationToken stoppingToken = default)
     {
-        using var connection = await db.OpenConnectionAsync(stoppingToken);
+        await using var connection = await db.OpenConnectionAsync(stoppingToken);
         await connection.ExecuteAsync(RevokeTokenChainQuery, new { tokenId });
     }
 

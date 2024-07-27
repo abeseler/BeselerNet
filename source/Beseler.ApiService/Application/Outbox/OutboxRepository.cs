@@ -34,7 +34,7 @@ public sealed class OutboxRepository(NpgsqlDataSource db)
 
     public async Task<OutboxMessage?> Dequeue(CancellationToken stoppingToken)
     {
-        using var connection = await db.OpenConnectionAsync(stoppingToken);
+        await using var connection = await db.OpenConnectionAsync(stoppingToken);
         return await connection.QuerySingleOrDefaultAsync<OutboxMessage>("""
             WITH messages AS (
                 SELECT id
@@ -56,7 +56,7 @@ public sealed class OutboxRepository(NpgsqlDataSource db)
 
     public async Task DeleteAsync(OutboxMessage message, CancellationToken stoppingToken)
     {
-        using var connection = await db.OpenConnectionAsync(stoppingToken);
+        await using var connection = await db.OpenConnectionAsync(stoppingToken);
         _ = await connection.ExecuteAsync("DELETE FROM app.outbox_queue WHERE id = @Id", new { message.Id });
     }
 }

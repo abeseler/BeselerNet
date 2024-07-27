@@ -9,7 +9,7 @@ public sealed class AccountRepository(NpgsqlDataSource db, OutboxRepository outb
 {
     public async Task<Account?> GetByIdAsync(int id, CancellationToken stoppingToken = default)
     {
-        using var connection = await db.OpenConnectionAsync(stoppingToken);
+        await using var connection = await db.OpenConnectionAsync(stoppingToken);
         return await connection.QuerySingleOrDefaultAsync<Account>(
             """
             SELECT *
@@ -20,7 +20,7 @@ public sealed class AccountRepository(NpgsqlDataSource db, OutboxRepository outb
 
     public async Task<Account?> GetByEmailAsync(string email, CancellationToken stoppingToken = default)
     {
-        using var connection = await db.OpenConnectionAsync(stoppingToken);
+        await using var connection = await db.OpenConnectionAsync(stoppingToken);
         return await connection.QuerySingleOrDefaultAsync<Account>(
             """
             SELECT *
@@ -52,7 +52,7 @@ public sealed class AccountRepository(NpgsqlDataSource db, OutboxRepository outb
 
     private async Task<Result<Account>> InsertAsync(Account account, CancellationToken stoppingToken = default)
     {
-        using var connection = await db.OpenConnectionAsync(stoppingToken);
+        await using var connection = await db.OpenConnectionAsync(stoppingToken);
         var accountId = await connection.QuerySingleAsync<int>(
             """
             INSERT INTO app.account (
