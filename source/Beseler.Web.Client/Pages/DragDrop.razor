@@ -1,0 +1,22 @@
+﻿@page "/dragdrop"
+
+<div style="border:2px dashed;border-color:lightgray;display:inline-block;position:relative;left:50%;transform:translateX(-50%)">
+    <div style="position:relative;height:@(containerHeight)px;width:@(containerWidth)px" ondragover="event.preventDefault();" ondragstart="event.dataTransfer.setData('', event.target.id);">
+        <DraggableBox X=50 Y=50 Height=120 Width=80 ContainerHeight=containerHeight ContainerWidth=containerWidth>
+            <div style="background-color:darkblue;color:antiquewhite;height:100%;width:100%">
+                <p>Drag me</p>
+            </div
+        </DraggableBox>
+
+        <DraggableBox X=250 Y=50 Height=80 Width=120 ContainerHeight=containerHeight ContainerWidth=containerWidth>
+            <div style="background-color:darkred;color:antiquewhite;height:100%;width:100%">
+                <p>Drag me</p>
+            </div
+        </DraggableBox>
+    </div>
+</div>
+
+@code {
+    private double containerHeight = 800;
+    private double containerWidth = 1000;
+}

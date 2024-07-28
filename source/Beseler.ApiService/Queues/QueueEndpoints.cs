@@ -21,3 +21,5 @@ internal static class QueueEndpoints
         return app;
     }
 }
+
+public sealed record QueueDto(string QueueName, int MessageLifespanDays, int MessageMaxReceives);

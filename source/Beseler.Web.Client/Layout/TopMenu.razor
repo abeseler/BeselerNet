@@ -27,6 +27,7 @@
                     </Authorized>
                     <NotAuthorized>
                         <li class="dropdown-item pointer" @onclick="() => NavigateTo(Routes.Login)">Login</li>
+                        <li><hr class="dropdown-divider"></li>
                         <li class="dropdown-item pointer" @onclick="() => NavigateTo(Routes.Register)">Register</li>
                     </NotAuthorized>
                 </AuthorizeView>
@@ -38,7 +39,13 @@
                     <NavLink class="nav-link" href="@Routes.Home" Match="NavLinkMatch.All">Home</NavLink>
                 </li>
                 <li class="nav-item">
+                    <NavLink class="nav-link" href="counter">Counter</NavLink>
+                </li>
+                <li class="nav-item">
                     <NavLink class="nav-link" href="weather">Weather</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="dragdrop">Drag-Drop</NavLink>
                 </li>
             </ul>
         </div>

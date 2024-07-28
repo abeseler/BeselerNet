@@ -1,0 +1,59 @@
+﻿<div style="cursor:move;display:inline-block;position:absolute;height:@(Height)px;width:@(Width)px;left:@(X)px;top:@(Y)px" draggable="true" @ondragstart=OnDragStart @ondragend=OnDragEnd>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public double X { get; set; } = 0;
+    [Parameter] public double Y { get; set; } = 0;
+    [Parameter] public double Height { get; set; } = 10;
+    [Parameter] public double Width { get; set; } = 10;
+    [Parameter] public double ContainerHeight { get; set; } = 400;
+    [Parameter] public double ContainerWidth { get; set; } = 400;
+
+    private double startX, startY;
+
+    private void OnDragStart(DragEventArgs e)
+    {
+        startX = e.ClientX;
+        startY = e.ClientY;
+
+        Console.WriteLine($"startX: {startX}, startY: {startY}");
+    }
+
+    private void OnDragEnd(DragEventArgs e)
+    {
+        var x = Math.Round((X + e.ClientX - startX) / 10) * 10;
+        var y = Math.Round((Y + e.ClientY - startY) / 10) * 10;
+
+        if (x < 0)
+        {
+            X = 0;
+        }
+        else if (x > ContainerWidth - Width)
+        {
+            X = ContainerWidth - Width;
+        }
+        else
+        {
+            X = x;
+        }
+
+        if (y < 0)
+        {
+            Y = 0;
+        }
+        else if (y > ContainerHeight - Height)
+        {
+            Y = ContainerHeight - Height;
+        }
+        else
+        {
+            Y = y;
+        }
+
+        Console.WriteLine($"OffsetX: {X}, OffsetY: {Y}");
+    }
+}
