@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using SendGrid.Extensions.DependencyInjection;
-using Serilog;
 using Serilog.Core;
 using System.Text;
 
@@ -21,35 +20,7 @@ internal static class Registrar
 {
     public static WebApplicationBuilder AddServices(this WebApplicationBuilder builder)
     {
-        builder.Host.UseSerilog((context, services, configuration) => configuration
-            .ReadFrom.Configuration(context.Configuration)
-            .ReadFrom.Services(services)
-            .Filter.ByExcluding(logEvent =>
-                logEvent.Properties.TryGetValue("RequestPath", out var requestPath)
-                    && requestPath.ToString() switch
-                    {
-                        { } path when path.StartsWith("\"/health") => true,
-                        { } path when path.StartsWith("\"/alive") => true,
-                        _ => false
-                    })
-            .WriteTo.OpenTelemetry(options =>
-            {
-                options.Endpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]!;
-                var headers = builder.Configuration["OTEL_EXPORTER_OTLP_HEADERS"]?.Split(',') ?? [];
-                foreach (var header in headers)
-                {
-                    var (key, value) = header.Split('=') switch
-                    {
-                    [{ } k, { } v] => (k, v),
-                        var v => throw new Exception($"Invalid header format {v}")
-                    };
-
-                    options.Headers.Add(key, value);
-                }
-                options.ResourceAttributes.Add("service.name", builder.Environment.ApplicationName);
-            })
-            .Enrich.FromLogContext());
-
+        builder.ConfigureLogging();
         builder.AddServiceDefaults();
         builder.Services.AddOpenTelemetry()
             .WithTracing(tracing =>

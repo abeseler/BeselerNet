@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Serilog;
 
 namespace Beseler.Defaults;
 
@@ -16,7 +17,6 @@ public static class ServiceExtensions
     public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
     {
         builder.ConfigureOpenTelemetry();
-
         builder.AddDefaultHealthChecks();
 
         builder.Services.AddServiceDiscovery();
@@ -30,13 +30,48 @@ public static class ServiceExtensions
         return builder;
     }
 
+    public static IHostApplicationBuilder ConfigureLogging(this WebApplicationBuilder builder)
+    {
+        builder.Logging.ClearProviders();
+        builder.Host.UseSerilog((context, services, configuration) => configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Filter.ByExcluding(logEvent =>
+                logEvent.Properties.TryGetValue("RequestPath", out var requestPath)
+                    && requestPath.ToString() switch
+                    {
+                        { } path when path.StartsWith("\"/health") => true,
+                        { } path when path.StartsWith("\"/alive") => true,
+                        _ => false
+                    })
+            .WriteTo.OpenTelemetry(options =>
+            {
+                options.Endpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]!;
+                var headers = builder.Configuration["OTEL_EXPORTER_OTLP_HEADERS"]?.Split(',') ?? [];
+                foreach (var header in headers)
+                {
+                    var (key, value) = header.Split('=') switch
+                    {
+                    [{ } k, { } v] => (k, v),
+                        var v => throw new Exception($"Invalid header format {v}")
+                    };
+
+                    options.Headers.Add(key, value);
+                }
+                options.ResourceAttributes.Add("service.name", builder.Environment.ApplicationName);
+            })
+            .Enrich.FromLogContext());
+
+        return builder;
+    }
+
     public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
     {
-        builder.Logging.AddOpenTelemetry(logging =>
-        {
-            logging.IncludeFormattedMessage = true;
-            logging.IncludeScopes = true;
-        });
+        //builder.Logging.AddOpenTelemetry(logging =>
+        //{
+        //    logging.IncludeFormattedMessage = true;
+        //    logging.IncludeScopes = true;
+        //});
 
         builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
@@ -68,7 +103,7 @@ public static class ServiceExtensions
 
         if (useOtlpExporter)
         {
-            builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
+            //builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
             builder.Services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOtlpExporter());
             builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter());
         }

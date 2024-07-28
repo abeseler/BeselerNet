@@ -6,37 +6,7 @@ using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((context, services, configuration) => configuration
-    .ReadFrom.Configuration(context.Configuration)
-    .ReadFrom.Services(services)
-    .Filter.ByExcluding(logEvent =>
-        logEvent.Properties.TryGetValue("RequestPath", out var requestPath)
-            && requestPath.ToString() switch
-            {
-                string path when path.StartsWith("\"/_framework") => true,
-                string path when path.StartsWith("\"/favicon") => true,
-                string path when path.StartsWith("\"/health") => true,
-                string path when path.StartsWith("\"/alive") => true,
-                _ => false
-            })
-    .WriteTo.OpenTelemetry(options =>
-    {
-        options.Endpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]!;
-        var headers = builder.Configuration["OTEL_EXPORTER_OTLP_HEADERS"]?.Split(',') ?? [];
-        foreach (var header in headers)
-        {
-            var (key, value) = header.Split('=') switch
-            {
-            [string k, string v] => (k, v),
-                var v => throw new Exception($"Invalid header format {v}")
-            };
-
-            options.Headers.Add(key, value);
-        }
-        options.ResourceAttributes.Add("service.name", builder.Environment.ApplicationName);
-    })
-    .Enrich.FromLogContext());
-
+builder.ConfigureLogging();
 builder.AddServiceDefaults();
 
 builder.Services.AddHttpForwarderWithServiceDiscovery();
