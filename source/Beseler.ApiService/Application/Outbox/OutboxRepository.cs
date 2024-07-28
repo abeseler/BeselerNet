@@ -7,10 +7,10 @@ public sealed class OutboxRepository(NpgsqlDataSource db)
 {
     public const string ServiceId = "Beseler.ApiService";
 
-    public async Task Enqueue(IEnumerable<OutboxMessage> messages, CancellationToken stoppingToken)
-        => await TaskExt.WhenAll(messages.Select(message => Enqueue(message, stoppingToken)).ToArray());
+    public async Task EnqueueAsync(IEnumerable<OutboxMessage> messages, CancellationToken stoppingToken)
+        => await TaskExt.WhenAll(messages.Select(message => EnqueueAsync(message, stoppingToken)).ToArray());
 
-    public async Task Enqueue(OutboxMessage message, CancellationToken stoppingToken)
+    public async Task EnqueueAsync(OutboxMessage message, CancellationToken stoppingToken)
     {
         using var connection = await db.OpenConnectionAsync(stoppingToken);
         _ = await connection.ExecuteAsync("""
@@ -32,7 +32,7 @@ public sealed class OutboxRepository(NpgsqlDataSource db)
         });
     }
 
-    public async Task<OutboxMessage?> Dequeue(CancellationToken stoppingToken)
+    public async Task<OutboxMessage?> DequeueAsync(CancellationToken stoppingToken)
     {
         await using var connection = await db.OpenConnectionAsync(stoppingToken);
         return await connection.QuerySingleOrDefaultAsync<OutboxMessage>("""

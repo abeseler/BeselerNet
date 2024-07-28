@@ -1,10 +1,14 @@
+using Aspire.Hosting;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var username = builder.AddParameter("pgUsername");
 var password = builder.AddParameter("pgPassword");
 
 var postgres = builder.AddPostgres("postgres", username, password, port: 15432)
-    .WithBindMount("../../data", "/docker-entrypoint-initdb.d");
+    .WithBindMount("../../data", "/docker-entrypoint-initdb.d")
+    .WithPgAdmin();
+
 var database = postgres.AddDatabase("Default", "bslr");
 
 builder.AddContainer("dbdeploy", "abeseler/dbdeploy")
@@ -17,10 +21,10 @@ builder.AddContainer("dbdeploy", "abeseler/dbdeploy")
     .WithEnvironment("Serilog__MinimumLevel__Default", "Debug")
     .WithBindMount("../../data", "/app/Migrations");
 
-var apiService = builder.AddProject<Projects.Beseler_ApiService>("BeselerApi")
+var apiService = builder.AddProject<Projects.Beseler_ApiService>("ApiService")
     .WithReference(database);
 
-builder.AddProject<Projects.Beseler_Web>("BeselerWeb")
+builder.AddProject<Projects.Beseler_Web>("Web")
     .WithReference(apiService);
 
 builder.Build().Run();

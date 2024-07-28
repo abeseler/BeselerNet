@@ -5,7 +5,7 @@ namespace Beseler.ApiService.Accounts.EventHandlers;
 
 internal sealed class SendVerificationEmailWhenAccountCreatedHandler(TokenService tokenService, AccountRepository repository, EmailService emailService)
 {
-    public async Task HandleAsync(AccountCreatedDomainEvent @event, CancellationToken stoppingToken = default)
+    public async Task Handle(AccountCreatedDomainEvent @event, CancellationToken stoppingToken = default)
     {
         using var activity = Telemetry.Source.StartActivity("SendVerificationEmailWhenAccountCreatedHandler.HandleAsync", ActivityKind.Internal, Activity.Current?.Id ?? @event.TraceId);
         activity?.SetTag("event.id", @event.EventId);

@@ -42,7 +42,7 @@ public sealed class AccountRepository(NpgsqlDataSource db, OutboxRepository outb
         if (account.DomainEvents.Count > 0)
         {
             var messages = account.DomainEvents.Select(OutboxMessage.CreateFrom);
-            await outbox.Enqueue(messages, stoppingToken);
+            await outbox.EnqueueAsync(messages, stoppingToken);
         }
 
         account.SavedChanges();

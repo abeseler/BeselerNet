@@ -33,7 +33,7 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 
             options.Headers.Add(key, value);
         }
-        options.ResourceAttributes.Add("service.name", "Beseler.Web");
+        options.ResourceAttributes.Add("service.name", builder.Environment.ApplicationName);
     })
     .Enrich.FromLogContext());
 
@@ -56,27 +56,27 @@ else
     app.UseHsts();
 }
 
-app.MapForwarder($"/api/{Endpoints.Accounts.Refresh}", "http://BeselerApi", builder =>
+app.MapForwarder($"/api/{Endpoints.Accounts.Refresh}", "http://ApiService", builder =>
 {
     builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
 });
-app.MapForwarder($"/api/{Endpoints.Accounts.Login}", "http://BeselerApi", builder =>
+app.MapForwarder($"/api/{Endpoints.Accounts.Login}", "http://ApiService", builder =>
 {
     builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
 });
-app.MapForwarder($"/api/{Endpoints.Accounts.Register}", "http://BeselerApi", builder =>
+app.MapForwarder($"/api/{Endpoints.Accounts.Register}", "http://ApiService", builder =>
 {
     builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
 });
-app.MapForwarder($"/api/{Endpoints.Accounts.ConfirmEmail}", "http://BeselerApi", builder =>
+app.MapForwarder($"/api/{Endpoints.Accounts.ConfirmEmail}", "http://ApiService", builder =>
 {
     builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
 });
-app.MapForwarder($"/api/{Endpoints.Accounts.ResetPassword}", "http://BeselerApi", builder =>
+app.MapForwarder($"/api/{Endpoints.Accounts.ResetPassword}", "http://ApiService", builder =>
 {
     builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
 });
-app.MapForwarder("/api/weather", "http://BeselerApi", builder =>
+app.MapForwarder("/api/weather", "http://ApiService", builder =>
 {
     builder.RequestTransforms.Add(new PathStringTransform(PathStringTransform.PathTransformMode.RemovePrefix, "/api"));
 });

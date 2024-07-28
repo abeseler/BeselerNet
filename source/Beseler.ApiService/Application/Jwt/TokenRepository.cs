@@ -15,7 +15,7 @@ internal sealed class TokenRepository(NpgsqlDataSource db)
             """, new { tokenId });
     }
 
-    public async Task SaveAsync(TokenLog log, CancellationToken stoppingToken = default)
+    public async Task SaveChangesAsync(TokenLog log, CancellationToken stoppingToken = default)
     {
         var parameters = new DynamicParameters(log);
         using var connection = await db.OpenConnectionAsync(stoppingToken);

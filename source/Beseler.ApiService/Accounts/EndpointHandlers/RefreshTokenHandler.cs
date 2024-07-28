@@ -52,8 +52,8 @@ internal static class RefreshTokenHandler
         var (refreshTokenId, refreshToken, refreshExpiresOn) = tokenService.GenerateRefreshToken(account);
 
         tokenLog.ReplacedBy(refreshTokenId);
-        await tokenRepository.SaveAsync(tokenLog, stoppingToken);
-        await tokenRepository.SaveAsync(new TokenLog(refreshTokenId, refreshExpiresOn, account), stoppingToken);
+        await tokenRepository.SaveChangesAsync(tokenLog, stoppingToken);
+        await tokenRepository.SaveChangesAsync(new TokenLog(refreshTokenId, refreshExpiresOn, account), stoppingToken);
 
         cookieService.Set(CookieKeys.RefreshToken, refreshToken, refreshExpiresOn);
         return TypedResults.Ok(new AccessTokenResponse(accessToken, expiresOn));

@@ -9,9 +9,9 @@ internal sealed class OutboxMonitor(EventHandlingService factory, OutboxReposito
         {
             try
             {
-                while (await repository.Dequeue(stoppingToken) is { } message)
+                while (await repository.DequeueAsync(stoppingToken) is { } message)
                 {
-                    await ProcessMessage(message, stoppingToken);
+                    await ProcessMessageAsync(message, stoppingToken);
                 }
             }
             catch (Exception ex)
@@ -21,7 +21,7 @@ internal sealed class OutboxMonitor(EventHandlingService factory, OutboxReposito
         }
     }
 
-    private async Task ProcessMessage(OutboxMessage message, CancellationToken stoppingToken)
+    private async Task ProcessMessageAsync(OutboxMessage message, CancellationToken stoppingToken)
     {
         try
         {
@@ -32,7 +32,7 @@ internal sealed class OutboxMonitor(EventHandlingService factory, OutboxReposito
             activity?.SetTag("message.id", message.Id);
             activity?.SetTag("event.id", @event.EventId);
 
-            await factory.Handle(@event, stoppingToken);
+            await factory.HandleAsync(@event, stoppingToken);
             await repository.DeleteAsync(message, stoppingToken);
 
         }

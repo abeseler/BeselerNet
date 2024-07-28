@@ -5,7 +5,7 @@ namespace Beseler.ApiService.Accounts.EventHandlers;
 
 internal sealed class SendAccountLockedEmailWhenAccountLockedHandler(EmailService emailService)
 {
-    public async Task HandleAsync(AccountLockedDomainEvent @event, CancellationToken stoppingToken = default)
+    public async Task Handle(AccountLockedDomainEvent @event, CancellationToken stoppingToken = default)
     {
         using var activity = Telemetry.Source.StartActivity("SendAccountLockedEmailWhenAccountLockedHandler.HandleAsync", ActivityKind.Internal, Activity.Current?.Id ?? @event.TraceId);
         activity?.SetTag("event.id", @event.EventId);
