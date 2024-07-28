@@ -59,6 +59,14 @@ public static class ServiceExtensions
                     options.Headers.Add(key, value);
                 }
                 options.ResourceAttributes.Add("service.name", builder.Environment.ApplicationName);
+
+                var (otelResourceAttribute, otelResourceAttributeValue) = builder.Configuration["OTEL_RESOURCE_ATTRIBUTES"]?.Split('=') switch
+                {
+                [string k, string v] => (k, v),
+                    _ => throw new Exception($"Invalid header format {builder.Configuration["OTEL_RESOURCE_ATTRIBUTES"]}")
+                };
+
+                options.ResourceAttributes.Add(otelResourceAttribute, otelResourceAttributeValue);
             })
             .Enrich.FromLogContext());
 
