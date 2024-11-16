@@ -16,7 +16,7 @@ internal sealed class SendVerificationEmailWhenAccountCreatedHandler(TokenServic
         activity?.SetTag_AccountId(account.AccountId);
 
         var token = tokenService.GenerateToken(account, TimeSpan.FromMinutes(10), [AppClaims.ConfirmEmailClaim(tokenService.Audience, account.Email)]);
-
+        
         var emailMessage = new EmailMessage
         {
             ToEmail = account.Email,

@@ -14,7 +14,7 @@ public sealed record OutboxMessage
     {
         Id = 0,
         ServiceId = OutboxRepository.ServiceId,
-        Payload = JsonSerializer.Serialize(payload, JsonSerializerOptionsExt.Web),
+        Payload = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
         CreatedOn = DateTime.UtcNow,
         InvisibleUntil = DateTime.UtcNow,
         ReceivesRemaining = 10

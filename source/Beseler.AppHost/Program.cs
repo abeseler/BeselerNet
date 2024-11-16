@@ -1,5 +1,3 @@
-using Aspire.Hosting;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 var username = builder.AddParameter("pgUsername");
@@ -11,7 +9,7 @@ var postgres = builder.AddPostgres("postgres", username, password, port: 15432)
 
 var database = postgres.AddDatabase("Default", "bslr");
 
-builder.AddContainer("dbdeploy", "abeseler/dbdeploy")
+var dbMigrator = builder.AddContainer("dbdeploy", "abeseler/dbdeploy")
     .WithEnvironment("Deploy__Command", "update")
     .WithEnvironment("Deploy__StartingFile", "migrations.json")
     .WithEnvironment("Deploy__DatabaseProvider", "postgres")
@@ -19,12 +17,15 @@ builder.AddContainer("dbdeploy", "abeseler/dbdeploy")
     .WithEnvironment("Deploy__ConnectionAttempts", "10")
     .WithEnvironment("Deploy__ConnectionRetryDelaySeconds", "1")
     .WithEnvironment("Serilog__MinimumLevel__Default", "Debug")
-    .WithBindMount("../../data", "/app/Migrations");
+    .WithBindMount("../../data", "/app/Migrations")
+    .WaitFor(database);
 
 var apiService = builder.AddProject<Projects.Beseler_ApiService>("ApiService")
-    .WithReference(database);
+    .WithReference(database)
+    .WaitForCompletion(dbMigrator);
 
 builder.AddProject<Projects.Beseler_Web>("Web")
-    .WithReference(apiService);
+    .WithReference(apiService)
+    .WaitFor(apiService);
 
 builder.Build().Run();

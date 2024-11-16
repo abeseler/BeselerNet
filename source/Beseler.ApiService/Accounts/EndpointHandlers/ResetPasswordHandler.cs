@@ -45,6 +45,6 @@ internal static class ResetPasswordHandler
 
         return saveResult.Match<IResult>(
             onSuccess: _ => TypedResults.NoContent(),
-            onFailure: error => TypedResults.Problem(error.Message));
+            onFailure: error => TypedResults.UnprocessableEntity(error.Message));
     }
 }

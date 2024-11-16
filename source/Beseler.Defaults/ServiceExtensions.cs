@@ -42,6 +42,7 @@ public static class ServiceExtensions
                     {
                         { } path when path.StartsWith("\"/health") => true,
                         { } path when path.StartsWith("\"/alive") => true,
+                        { } path when path.StartsWith("\"/ready") => true,
                         _ => false
                     })
             .WriteTo.OpenTelemetry(options =>
@@ -75,43 +76,26 @@ public static class ServiceExtensions
 
     public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
     {
-        //builder.Logging.AddOpenTelemetry(logging =>
-        //{
-        //    logging.IncludeFormattedMessage = true;
-        //    logging.IncludeScopes = true;
-        //});
-
         builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
                 metrics.AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation();
+                       .AddHttpClientInstrumentation()
+                       .AddRuntimeInstrumentation();
             })
             .WithTracing(tracing =>
             {
                 if (builder.Environment.IsDevelopment())
                 {
-                    // We want to view all traces in development
                     tracing.SetSampler(new AlwaysOnSampler());
                 }
 
                 tracing.AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation();
+                       .AddHttpClientInstrumentation();
             });
 
-        builder.AddOpenTelemetryExporters();
-
-        return builder;
-    }
-
-    private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
-    {
-        var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
-
-        if (useOtlpExporter)
+        if (!string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
         {
-            //builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
             builder.Services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOtlpExporter());
             builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter());
         }

@@ -44,6 +44,6 @@ internal static class ConfirmEmailHandler
 
         return saveResult.Match<IResult>(
             onSuccess: _ => TypedResults.Ok(response),
-            onFailure: error => TypedResults.Problem(error.Message));
+            onFailure: error => TypedResults.UnprocessableEntity(error.Message));
     }
 }

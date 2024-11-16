@@ -25,7 +25,7 @@ internal sealed class OutboxMonitor(EventHandlingService factory, OutboxReposito
     {
         try
         {
-            var @event = JsonSerializer.Deserialize<Event>(message.Payload, JsonSerializerOptionsExt.Web)
+            var @event = JsonSerializer.Deserialize<Event>(message.Payload, JsonSerializerOptions.Web)
                 ?? throw new InvalidOperationException("Failed to deserialize event from message payload.");
 
             using var activity = Telemetry.Source.StartActivity("OutboxMonitor.ProcessMessage", ActivityKind.Internal, @event.TraceId);
